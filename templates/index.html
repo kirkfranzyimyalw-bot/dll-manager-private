@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 DLL版本管理系统</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --warning: #ffd166;
+            --dark: #118ab2;
+            --light: #f8f9fa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fb;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-success {
+            background-color: var(--success);
+            color: #0a3622;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+            display: none;
+        }
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            display: block;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #842029;
+            display: block;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        .status-pass {
+            color: #198754;
+            font-weight: 500;
+        }
+        .status-fail {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .status-block {
+            color: #ffc107;
+            font-weight: 500;
+        }
+        .file-size {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            table {
+                min-width: 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="container">
+                <h1>📦 DLL版本管理系统</h1>
+                <p class="subtitle">集中管理DLL历史版本 • 完整测试记录 • 操作审计追踪</p>
+            </div>
+        </header>
+
+        <div class="actions">
+            <a href="/upload" class="btn btn-primary">➕ 上传新版本</a>
+            <a href="/api/versions" class="btn btn-success" target="_blank">📊 查看API数据</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+                {{ message }}
+            </div>
+          {% endfor %}
+        {% endwith %}
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>软件名称</th>
+                        <th>版本</th>
+                        <th>测试结果</th>
+                        <th>测试ID</th>
+                        <th>开发负责人</th>
+                        <th>文件大小</th>
+                        <th>上传时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in versions %}
+                    <tr>
+                        <td>{{ v.software_name }}</td>
+                        <td>v{{ v.version }}</td>
+                        <td>
+                            <span class="status-{{ 
+                                'pass' if v.test_result == '通过' else 
+                                'fail' if v.test_result == '失败' else 
+                                'block' 
+                            }}">
+                                {{ v.test_result }}
+                            </span>
+                        </td>
+                        <td>{{ v.test_id }}</td>
+                        <td>{{ v.developer_dri }}</td>
+                        <td class="file-size">{{ v.get_file_size_mb() }} MB</td>
+                        <td>{{ v.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="/download/{{ v.id }}" class="btn btn-success" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">
+                                ⬇️ 下载
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 2rem;">
+                            📁 暂无DLL版本记录 - <a href="/upload" style="color: var(--primary); text-decoration: underline;">上传第一个版本</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>系统版本: 1.0.0 • 存储路径: /opt/dll_manager/storage • 
+               <a href="/health" target="_blank" style="color: var(--dark);">健康状态</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // 自动隐藏成功消息
+        document.addEventListener('DOMContentLoaded', function() {
+            const successAlerts = document.querySelectorAll('.alert-success');
+            successAlerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📤 上传新DLL版本</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --warning: #ffd166;
+            --dark: #118ab2;
+            --light: #f8f9fa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fb;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .required::after {
+            content: " *";
+            color: var(--danger);
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="datetime-local"]:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .file-input-container {
+            border: 2px dashed #ced4da;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-input-container:hover,
+        .file-input-container.dragover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        .file-input-container i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .file-input-container p {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .file-input-container small {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        #file-name {
+            margin-top: 0.5rem;
+            font-weight: 500;
+            color: var(--primary);
+            min-height: 1.5rem;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+        }
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #842029;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="container">
+                <h1>📤 上传新DLL版本</h1>
+                <p class="subtitle">请完整填写所有带 * 的必填字段</p>
+            </div>
+        </header>
+
+        <a href="/" class="back-link">← 返回版本列表</a>
+
+        <div class="form-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                    {{ message }}
+                </div>
+              {% endfor %}
+            {% endwith %}
+
+            <form id="upload-form" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="required">软件名称</label>
+                    <input type="text" name="software_name" required 
+                           placeholder="例如: PaymentSDK, CoreEngine">
+                </div>
+
+                <div class="form-group">
+                    <label class="required">版本号</label>
+                    <input type="text" name="version" required 
+                           placeholder="例如: 1.0.0, 2.3.1 (无需输入 'v' 前缀)">
+                    <small style="color: #6c757d;">系统会自动添加 'v' 前缀并重命名文件</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">DLL文件</label>
+                    <div class="file-input-container" id="drop-area">
+                        <i>📁</i>
+                        <p>点击选择DLL文件 或 拖拽到此处</p>
+                        <small>仅支持 .dll 文件，最大 200MB</small>
+                        <div id="file-name"></div>
+                    </div>
+                    <input type="file" name="dll_file" id="file-input" accept=".dll" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">更新说明</label>
+                    <textarea name="update_notes" required 
+                              placeholder="详细描述本次版本的变更内容..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">测试描述</label>
+                    <textarea name="test_description" required 
+                              placeholder="描述本次测试的范围和重点..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">测试结果</label>
+                    <select name="test_result" required>
+                        <option value="">-- 选择测试结果 --</option>
+                        <option value="通过">✅ 通过</option>
+                        <option value="失败">❌ 失败</option>
+                        <option value="阻塞">⚠️ 阻塞</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">测试完成时间</label>
+                    <input type="datetime-local" name="test_completed_at" required>
+                </div>
+
+                <div class="form-group">
+                    <label>用时(秒)</label>
+                    <input type="number" name="test_duration" min="0" 
+                           placeholder="例如: 120 (表示2分钟)">
+                </div>
+
+                <div class="form-group">
+                    <label class="required">测试ID</label>
+                    <input type="text" name="test_id" required 
+                           placeholder="例如: TEST-1234, JIRA-5678">
+                </div>
+
+                <div class="form-group">
+                    <label class="required">开发负责人(DRI)</label>
+                    <input type="text" name="developer_dri" required 
+                           placeholder="例如: 张三, wangxiaoming">
+                </div>
+
+                <button type="submit" class="btn-submit" id="submit-btn">
+                    🚀 上传DLL版本
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('file-input');
+            const fileName = document.getElementById('file-name');
+            const submitBtn = document.getElementById('submit-btn');
+
+            // 点击区域触发文件选择
+            dropArea.addEventListener('click', () => fileInput.click());
+
+            // 文件选择处理
+            fileInput.addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    fileName.textContent = `选定文件: ${file.name} (${formatFileSize(file.size)})`;
+                    validateForm();
+                }
+            });
+
+            // 拖拽支持
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropArea.classList.add('dragover');
+            }
+
+            function unhighlight() {
+                dropArea.classList.remove('dragover');
+            }
+
+            dropArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length) {
+                    fileInput.files = files;
+                    const file = files[0];
+                    fileName.textContent = `选定文件: ${file.name} (${formatFileSize(file.size)})`;
+                    validateForm();
+                }
+            }
+
+            // 文件大小格式化
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // 表单验证
+            function validateForm() {
+                const allRequiredFilled = [...document.querySelectorAll('[required]')].every(el => {
+                    if (el.type === 'file') return el.files.length > 0;
+                    return el.value.trim() !== '';
+                });
+                submitBtn.disabled = !allRequiredFilled;
+            }
+
+            // 实时验证
+            [...document.querySelectorAll('input, textarea, select')].forEach(input => {
+                input.addEventListener('input', validateForm);
+                input.addEventListener('change', validateForm);
+            });
+
+            // 初始验证
+            validateForm();
+        });
+    </script>
+</body>
+</html>
