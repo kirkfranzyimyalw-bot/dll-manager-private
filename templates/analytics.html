@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 数据分析 - DLL版本管理系统</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --warning: #ffd166;
+            --dark: #118ab2;
+            --light: #f8f9fa;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fb;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .nav {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #495057;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            background-color: var(--light);
+            color: var(--primary);
+        }
+        .nav-link.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .analytics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        .chart-card h3 {
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            font-size: 1.2rem;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .table-container h3 {
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            font-size: 1.2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .analytics-container {
+                grid-template-columns: 1fr;
+            }
+            .nav {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .nav-links {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="container">
+                <h1>📦 DLL版本管理系统</h1>
+                <p class="subtitle">数据分析</p>
+            </div>
+        </header>
+
+        <div class="nav">
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}" class="nav-link">🏠 首页</a>
+                <a href="{{ url_for('upload') }}" class="nav-link">📤 上传</a>
+                <a href="{{ url_for('analytics') }}" class="nav-link active">📊 数据分析</a>
+                <a href="{{ url_for('user_profile') }}" class="nav-link">👤 个人信息</a>
+            </div>
+            <div class="user-info">
+                <span>欢迎，{{ user.full_name or user.username }}</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">🚪 登出</a>
+            </div>
+        </div>
+
+        <div class="analytics-container">
+            <!-- 版本趋势图 -->
+            <div class="chart-card">
+                <h3>📈 版本趋势</h3>
+                <div class="chart-container">
+                    <canvas id="versionTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 测试结果饼图 -->
+            <div class="chart-card">
+                <h3>🥧 测试结果统计</h3>
+                <div class="chart-container">
+                    <canvas id="testResultChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 文件类型分布图 -->
+            <div class="chart-card">
+                <h3>📋 文件类型分布</h3>
+                <div class="chart-container">
+                    <canvas id="fileTypeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 下载量柱状图 -->
+            <div class="chart-card">
+                <h3>📥 下载量统计</h3>
+                <div class="chart-container">
+                    <canvas id="downloadChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3>📊 版本详情</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>软件名称</th>
+                        <th>版本</th>
+                        <th>文件类型</th>
+                        <th>测试结果</th>
+                        <th>文件大小</th>
+                        <th>上传时间</th>
+                        <th>下载次数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in top_downloads %}
+                    <tr>
+                        <td>{{ v.software_name }}</td>
+                        <td>v{{ v.version }}</td>
+                        <td>{{ v.file_type }}</td>
+                        <td>{{ v.test_result }}</td>
+                        <td>{{ v.get_file_size_mb() }} MB</td>
+                        <td>{{ v.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ v.downloaded_count }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem;">
+                            📁 暂无数据
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>系统版本: 1.0.0 • 数据分析页面</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 版本趋势图
+            const versionTrendCtx = document.getElementById('versionTrendChart').getContext('2d');
+            const versionTrendData = JSON.parse('{{ version_trend|tojson }}');
+            const versionTrendLabels = Object.keys(versionTrendData).sort();
+            const versionTrendValues = versionTrendLabels.map(label => versionTrendData[label]);
+            
+            new Chart(versionTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: versionTrendLabels,
+                    datasets: [{
+                        label: '版本数量',
+                        data: versionTrendValues,
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 测试结果饼图
+            const testResultCtx = document.getElementById('testResultChart').getContext('2d');
+            const testResultData = JSON.parse('{{ test_results|tojson }}');
+            
+            new Chart(testResultCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(testResultData),
+                    datasets: [{
+                        data: Object.values(testResultData),
+                        backgroundColor: [
+                            '#06d6a0',
+                            '#ef476f',
+                            '#ffd166'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            // 文件类型分布图
+            const fileTypeCtx = document.getElementById('fileTypeChart').getContext('2d');
+            const fileTypeData = JSON.parse('{{ file_types|tojson }}');
+            
+            new Chart(fileTypeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(fileTypeData),
+                    datasets: [{
+                        data: Object.values(fileTypeData),
+                        backgroundColor: [
+                            '#4361ee',
+                            '#118ab2',
+                            '#073b4c'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            // 下载量柱状图
+            const downloadCtx = document.getElementById('downloadChart').getContext('2d');
+            const topDownloads = JSON.parse('{{ top_downloads|tojson }}');
+            const downloadLabels = topDownloads.map(item => item.software_name + ' v' + item.version);
+            const downloadValues = topDownloads.map(item => item.downloaded_count);
+            
+            new Chart(downloadCtx, {
+                type: 'bar',
+                data: {
+                    labels: downloadLabels,
+                    datasets: [{
+                        label: '下载次数',
+                        data: downloadValues,
+                        backgroundColor: '#118ab2',
+                        borderColor: '#073b4c',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

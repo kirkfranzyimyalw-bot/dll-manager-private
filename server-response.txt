@@ -1,0 +1,6 @@
+# 服务器同步响应
+- 服务器主机名: $(hostname)
+- 接收时间: $(date)
+- 当前提交: $(git rev-parse --short HEAD)
+- 同步状态: ✅ 服务器已重置到最新远程分支
+- 接收到的文件: $(ls -t *.txt | head -1 2>/dev/null || echo "暂无")

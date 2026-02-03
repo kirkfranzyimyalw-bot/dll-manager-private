@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# 敏感文件（必须忽略！）
+.env
+*.log
+/backup/
+/checksum_*.md5
+.DS_Store
+Thumbs.db
+
+# 上传目录（保留结构但忽略内容）
+/uploads/*
+!/uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 用户上传文件（保留目录结构）
+/uploads/*
+!/uploads/.gitkeep
+/storage/current/*
+!/storage/current/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+/storage/current/*
+!/storage/current/.gitkeep
